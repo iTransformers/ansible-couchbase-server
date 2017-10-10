@@ -14,18 +14,26 @@
     - ../defaults/main.yml
   vars:
     couchbase_server_primary_node: "{{hostvars[groups['primary'][0]]['inventory_hostname']}}"
-    couchbase_server_bucket_name: default
-    couchbase_server_bucket_type: couchbase
-    couchbase_server_bucket_ram: 256
-    couchbase_server_bucket_port: 11211
-    couchbase_server_bucket_replica: 1
+
   tasks:
+    - name: Get major version
+      shell: cat /opt/couchbase/VERSION.txt | cut -d '.' -f1
+      register: cb_major_version
+
+   - name: Get minor version
+      shell: cat /opt/couchbase/VERSION.txt | cut -d '.' -f1
+      register: cb_minor_version
 
     - name: Verify node health
-      shell: "{{ couchbase_server_bin_path }}/couchbase-cli server-list -c {{ couchbase_server_primary_node }}:{{ couchbase_server_admin_port }} --user={{ couchbase_server_admin }} --password={{ couchbase_server_password }} | awk '/{{ couchbase_server_primary_node }}:{{ couchbase_server_admin_port }}/ {print $3}'"
+      shell: "{{ couchbase_server_bin_path }}/couchbase-cli server-list -c {{ couchbase_server_primary_node }}:{{ couchbase_server_admin_port }} --user={{ couchbase_server_admin }} --password={{ couchbase_server_password }} | awk '/{{ couchbase_server_primary_node }}/ {print $3}'"
       register: couchbase_server_health
       failed_when: couchbase_server_health['stdout'] != "healthy"
 
     - name: Create new bucket
+      shell: "{{ couchbase_server_bin_path }}/couchbase-cli bucket-create -c {{ ansible_fqdn }}:{{ couchbase_server_admin_port }} --user={{ couchbase_server_admin }} --password={{ couchbase_server_password }} --bucket={{ couchbase_server_bucket_name }} --bucket-type={{ couchbase_server_bucket_type }} --bucket-port={{ couchbase_server_bucket_port }} --bucket-ramsize={{ couchbase_server_bucket_ram }} --bucket-password={{ couchbase_server_bucket_password }} --bucket-replica={{ couchbase_server_bucket_replica }} --enable-flush={{ couchbase_server_bucket_flush }} --wait"
+      when: couchbase_server_health['stdout'] == "healthy" and couchbase_server_bucket_flush  is defined and couchbase_server_bucket_password is defined
+
+    - name: Create new bucket
       shell: "{{ couchbase_server_bin_path }}/couchbase-cli bucket-create -c {{ ansible_fqdn }}:{{ couchbase_server_admin_port }} --user={{ couchbase_server_admin }} --password={{ couchbase_server_password }} --bucket={{ couchbase_server_bucket_name }} --bucket-type={{ couchbase_server_bucket_type }} --bucket-port={{ couchbase_server_bucket_port }} --bucket-ramsize={{ couchbase_server_bucket_ram }} --bucket-replica={{ couchbase_server_bucket_replica }}"
       when: couchbase_server_health['stdout'] == "healthy"
+

@@ -39,6 +39,7 @@ couchbase_server_edition: "enterprise"
 couchbase_server_admin: "Administrator"
 couchbase_server_password: "couchbase"
 couchbase_server_ram: 3072
+couchbase_server_index_ram_size: 256
 couchbase_server_admin_port: 8091
 couchbase_server_epmd_port: 4369
 couchbase_server_admin_ssl_port: 18091
@@ -64,3 +65,12 @@ couchbase_server_tmpdir: "/tmp"
 couchbase_server_tune_os: false
 couchbase_server_firewall: false
 couchbase_server_local_package: false
+
+couchbase_server_bucket_name: "default"
+couchbase_server_bucket_type: couchbase
+couchbase_server_bucket_ram: 256
+couchbase_server_bucket_port: 11211
+couchbase_server_bucket_replica: 1
+couchbase_server_bucket_flush: 1
+couchbase_server_bucket_password: "Pass123"
+
